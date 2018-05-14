@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+import PIL
+from PIL import ImageEnhance
+from PIL import Image
+from PIL import ImageFilter
+
+# Change brightness
+class ChangeBrightness:
+    # A value between 0.1 and 4 makes sense
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, image):
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(self.value)
+        return image
+
+# Change contrast
+class ChangeContrast:
+
+    def __init__(self, multiplier):
+        self.multiplier = multiplier
+
+    def __call__(self, image):
+        # Change Contrast: value between 0.1 and 5 or 6 makes sense
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(self.multiplier)
+        return image
+
+# Add Gaussian blur
+class GaussianBlur:
+
+    # def __init__(self, kernel_width, kernel_height, mean, std_x, std_y):
+    #     self.kernel_width = kernel_width
+    #     self.kernel_height = kernel_height
+    #     self.mean = mean
+    #     self.std_x = std_x
+    #     self.std_y = std_y
+
+    def __init__(self, radius):
+        self.radius = radius
+
+    def __call__(self, image):
+        image = image.filter(ImageFilter.GaussianBlur(self.radius))
+        return image
+
+# Add Gaussian noise
+class GaussianNoise:
+
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, image):
+        image_array = np.asarray(image)
+        noise = self.std * np.random.randn(np.shape(image_array)[0],np.shape(image_array)[1],np.shape(image_array)[2]) + self.mean
+        image_array = image_array + noise
+        image = Image.fromarray(np.uint8(image_array))
+        return image
+
+# TODO Add salt-and-pepper noise
+class SaltAndPepperNoise:
+
+    def __init__(self, percentage):
+        self.percentage = percentage
+
+    def __call__(self, image):
+        return image
+
+# TODO Region dropout
+# (mask out random rectangles, each taking ~1% of the image)
+class RegionDropout:
+
+    def __init__(self, percentage, number):
+        self.percentage = percentage
+        self.number = number
+
+    def __call__(self, image):
+        return image
+
+if __name__ == "__main__":
+    from dataset import DeepLoc
+
+    # Load the dataset
+    train_data = DeepLoc("train")
+    test_data = DeepLoc("test")
+
+    # Define the augmentations
+    augmentations = [
+        # ChangeBrightness(),
+        # ChangeContrast(),
+        # GaussianBlur(),
+        # GaussianNoise(),
+        # SaltAndPepperNoise(),
+        # RegionDropout()
+    ]
+
+    for augment in augmentations:
+
+        # Iterate the train data
+        for image, pose in train_data:
+            # Augment the image
+            image_augmented = augment(image)
+            # TODO Save the image (depends on the lib)
+
+        # Iterate the train data
+        for image, pose in test_data:
+            # Augment the image
+            image_augmented = augment(image)
+
+            # TODO Save the image (depends on the lib)
