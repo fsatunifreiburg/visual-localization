@@ -3,6 +3,7 @@ import PIL
 from PIL import ImageEnhance
 from PIL import Image
 from PIL import ImageFilter
+import numpy as np
 
 # Change brightness
 class ChangeBrightness:
@@ -65,6 +66,33 @@ class SaltAndPepperNoise:
         self.percentage = percentage
 
     def __call__(self, image):
+        # Convert image to array for changing a single pixel
+        image_array = np.asarray(image)
+        image_array.setflags(write=1)
+        
+        # Get information about image-size
+        columns = np.shape(image_array)[0]
+        rows = np.shape(image_array)[1]
+        num_pixeltochange = columns * rows * self.percentage / 2
+
+        # Set randomly chosen single pixels to white in a loop
+        counter = num_pixeltochange
+        while counter > 1:
+            x = np.random.randint(0,columns)
+            y = np.random.randint(0,rows)
+            image_array[x,y,:] = 255
+            counter = counter -1
+
+        # Set randomly chosen single pixels to black in a loop
+        counter = num_pixeltochange
+        while counter > 1:
+            x = np.random.randint(0,columns)
+            y = np.random.randint(0,rows)
+            image_array[x,y,:] = 0
+            counter = counter -1
+
+        # Form an image from an array 
+        image = Image.fromarray(np.uint8(image_array))
         return image
 
 # TODO Region dropout
@@ -76,6 +104,30 @@ class RegionDropout:
         self.number = number
 
     def __call__(self, image):
+        # Convert image to array and get its size
+        image_array = np.asarray(image)
+        image_array.setflags(write=1)
+        columns = np.shape(image_array)[0]
+        rows = np.shape(image_array)[1]
+
+        # Set values for Dropout rectangles
+        boxwidth = np.round(columns * np.sqrt(self.percentage))
+        boxhight = np.round(rows * np.sqrt(self.percentage))
+
+        for i in list(range(self.number)):
+            x = np.random.randint(0,columns)
+            y = np.random.randint(0,rows)
+            y_start = y
+            x_end = x + boxwidth
+            y_end = y + boxhight
+            while x < columns and x < x_end:
+                while y < rows and y < y_end:
+                    image_array[x,y,:] = 0
+                    y = y + 1
+                x = x + 1
+                y = y_start
+
+        image = Image.fromarray(np.uint8(image_array))
         return image
 
 if __name__ == "__main__":
@@ -101,7 +153,9 @@ if __name__ == "__main__":
         for image, pose in train_data:
             # Augment the image
             image_augmented = augment(image)
+            
             # TODO Save the image (depends on the lib)
+            image_augmented.save("savetest.jpg")
 
         # Iterate the train data
         for image, pose in test_data:

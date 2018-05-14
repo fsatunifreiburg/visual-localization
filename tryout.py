@@ -4,7 +4,7 @@ from PIL import Image
 from PIL import ImageFilter
 import numpy as np
 
-image = Image.open("/home/stillerf/virtpython/testbild.jpg")
+image = Image.open("test.jpg")
 #image.show("Original")
 
 # Change Brightness: value between 0.1 and 4 makes sense
@@ -57,38 +57,40 @@ while counter > 1:
     image_array[x,y,:] = 0
     counter = counter -1
 
+new_image = Image.fromarray(np.uint8(image_array))
+#new_image.show()
+
+
+
+# Region Dropout
+percentage = 0.01
+number = 10
+# Convert image to array and get its size
+image_array = np.asarray(image)
+image_array.setflags(write=1)
+columns = np.shape(image_array)[0]
+rows = np.shape(image_array)[1]
+
+# Set values for Dropout rectangles
+boxwidth = np.round(columns * np.sqrt(percentage))
+boxhight = np.round(rows * np.sqrt(percentage))
+
+for i in list(range(number)):
+    x = np.random.randint(0,columns)
+    y = np.random.randint(0,rows)
+    y_start = y
+    x_end = x + boxwidth
+    y_end = y + boxhight
+    while x < columns and x < x_end:
+        while y < rows and y < y_end:
+            image_array[x,y,:] = 0
+            y = y + 1
+        x = x + 1
+        y = y_start
 
 new_image = Image.fromarray(np.uint8(image_array))
 new_image.show()
 
-a = np.arange(0,27)
-a = a.reshape(3,3,3)
-a[2,2,] = 0
+new_image.save("savetest.jpg")
 
-print(a)
-
-
-
-
-
-
-
-
-
-#print(image_array)
-
-
-
-#image.show()
-#row,col,ch= image.shape
-
-#print(sigma)
-# gauss = np.random.normal(mean,sigma,(row,col,ch))
-# gauss = gauss.reshape(row,col,ch)
-#image = image + gauss
-#image.show()
-
-# im1 = im.filter(ImageFilter.BLUR)
-# im2 = im.filter(ImageFilter.MinFilter(3))
-# im3 = im.filter(ImageFilter.MinFilter)  # same as MinFilter(3)
 
